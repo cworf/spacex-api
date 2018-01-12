@@ -1,25 +1,20 @@
 const moment = require('moment');
 
-export function weatherApi(myIds, flightNumbers, dates, payloads, render){
-  var apiKey = require('./../../.env').apiKey;
+export function weatherApi(launchData, render) {
+	console.log(launchData);
+    var apiKey = require('./../../.env').apiKey;
+	for (var key in launchData) {
+		if (launchData.hasOwnProperty(key)) {
+			let launchDate = launchData[key].date;
+			let dateString = moment(launchDate).format("YYYYMMDD");
 
-  const promises = [];
-  let temperatures = [];
-  dates.forEach(function(date){
-    let dateString = moment(date).format("YYYYMMDD");
+			let xhr = $.get(`http://api.wunderground.com/api/${apiKey}/history_${dateString}/q/OR/Portland.json`); //97f24b4f89d53970
+			xhr.done(function(response) {
+				launchData[key].temperature = response.history.dailysummary[0].meantempi;
+				// temperature.push(response.history.dailysummary[0].meantempi);
 
-    const xhr = $.get(`http://api.wunderground.com/api/${apiKey}/history_${dateString}/q/OR/Portland.json`);
-    promises.push(xhr);
-    // xhr.done(function(response){
-    //   console.log(response.history.dailysummary[0].meantempi);
-    //   temperatures.push(response.history.dailysummary[0].meantempi);
-    //
-    //   // push date into dates array
-    // });
-  });
-  console.log("this is fucking " + temperatures);
-  $q.all(promises).then(function(response) {
-    console.log(response);
-  });
-  render(myIds, flightNumbers, dates, payloads, temperatures)
+			});
+		}
+	}
+    render(launchData);
 }
